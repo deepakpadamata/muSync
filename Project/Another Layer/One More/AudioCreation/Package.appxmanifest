@@ -26,6 +26,8 @@
     </Application>
   </Applications>
   <Capabilities>
+    <Capability Name="privateNetworkClientServer" />
+    <Capability Name="internetClientServer" />
     <uap:Capability Name="musicLibrary" />
     <DeviceCapability Name="microphone" />
   </Capabilities>
