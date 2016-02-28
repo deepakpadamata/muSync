@@ -25,6 +25,8 @@ using Windows.UI.Xaml;
 using Windows.UI.Xaml.Controls;
 using Windows.UI.Xaml.Navigation;
 using Windows.Foundation;
+using System.Threading.Tasks;
+using Windows.Media.Render;
 
 // The Blank Page item template is documented at http://go.microsoft.com/fwlink/?LinkId=234238
 
@@ -39,12 +41,75 @@ namespace AudioCreation
         private float[] dataInFloat = new float[500];
         private List<LocalHostItem> localHostItems = new List<LocalHostItem>();
         private AudioGraph audioGraph;
-        AudioFrameInputNode frameInputNode;
+        // ???
+        private AudioFrameInputNode frameInputNode;
+        // ???
+        private AudioDeviceOutputNode deviceOutputNode;
 
         public Scenario2_FileReceive()
         {
             this.InitializeComponent();
             PopulateAdapterList();
+        }
+
+        protected override async void OnNavigatedTo(NavigationEventArgs e)
+        {
+            rootPage = MainPage.Current;
+            await CreateAudioGraph();
+        }
+
+        protected override void OnNavigatedFrom(NavigationEventArgs e)
+        {
+            if (audioGraph != null)
+            {
+                audioGraph.Dispose();
+            }
+        }
+
+        private async Task CreateAudioGraph()
+        {
+            // Create an AudioGraph with default settings
+            AudioGraphSettings settings = new AudioGraphSettings(AudioRenderCategory.Media);
+            CreateAudioGraphResult result = await AudioGraph.CreateAsync(settings);
+
+            if (result.Status != AudioGraphCreationStatus.Success)
+            {
+                // Cannot create graph
+                rootPage.NotifyUser(String.Format("AudioGraph Creation Error because {0}", result.Status.ToString()), NotifyType.ErrorMessage);
+                return;
+            }
+
+            audioGraph = result.Graph;
+
+            // Create a device output node
+            CreateAudioDeviceOutputNodeResult deviceOutputNodeResult = await audioGraph.CreateDeviceOutputNodeAsync();
+            if (deviceOutputNodeResult.Status != AudioDeviceNodeCreationStatus.Success)
+            {
+                // Cannot create device output node
+                rootPage.NotifyUser(String.Format("Audio Device Output unavailable because {0}", deviceOutputNodeResult.Status.ToString()), NotifyType.ErrorMessage);
+                //speakerContainer.Background = new SolidColorBrush(Colors.Red);
+            }
+
+            deviceOutputNode = deviceOutputNodeResult.DeviceOutputNode;
+            rootPage.NotifyUser("Device Output Node successfully created", NotifyType.StatusMessage);
+            //speakerContainer.Background = new SolidColorBrush(Colors.Green);
+
+            // Create the FrameInputNode at the same format as the graph, except explicitly set mono.
+            AudioEncodingProperties nodeEncodingProperties = audioGraph.EncodingProperties;
+            nodeEncodingProperties.ChannelCount = 1;
+            frameInputNode = audioGraph.CreateFrameInputNode(nodeEncodingProperties);
+            frameInputNode.AddOutgoingConnection(deviceOutputNode);
+            //frameContainer.Background = new SolidColorBrush(Colors.Green);
+
+            // Initialize the Frame Input Node in the stopped state
+            frameInputNode.Stop();
+
+            // Hook up an event handler so we can start generating samples when needed
+            // This event is triggered when the node is required to provide data
+            frameInputNode.QuantumStarted += node_QuantumStarted;
+
+            // Start the graph since we will only start/stop the frame input node
+            audioGraph.Start();
         }
 
         private async void StartListener_Click(object sender, RoutedEventArgs e)
