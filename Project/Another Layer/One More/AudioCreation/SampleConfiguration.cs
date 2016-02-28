@@ -23,6 +23,7 @@ namespace SDKTemplate
         List<Scenario> scenarios = new List<Scenario>
         {
             new Scenario() { Title="File Playback", ClassType=typeof(Scenario1_FilePlayback)},
+            new Scenario() { Title="File Playback", ClassType=typeof(Scenario2_FileReceive)}
         };
     }
 

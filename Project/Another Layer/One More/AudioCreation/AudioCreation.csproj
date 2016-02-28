@@ -110,6 +110,9 @@
     </Compile>
     <Compile Include="IMemoryBufferByteAccess.cs" />
     <Compile Include="SampleConfiguration.cs" />
+    <Compile Include="Scenario2_FileReceive.xaml.cs">
+      <DependentUpon>Scenario2_FileReceive.xaml</DependentUpon>
+    </Compile>
     <Compile Include="Scenario1_FilePlayback.xaml.cs">
       <DependentUpon>Scenario1_FilePlayback.xaml</DependentUpon>
     </Compile>
@@ -127,6 +130,10 @@
     </ApplicationDefinition>
     <Page Include="..\..\..\..\SharedContent\cs\MainPage.xaml">
       <Link>MainPage.xaml</Link>
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Include="Scenario2_FileReceive.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </Page>
